@@ -7,6 +7,7 @@ import ResetPassword from "./auth/pages/ResetPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./dashboard/layouts/DashboardLayout";
 import AdminRoute from "./routes/AdminRoute";
+import DashboardHome from "./dashboard/pages/DashboardHome";
 
 const App = () => {
   return (
@@ -27,7 +28,7 @@ const App = () => {
         }
       >
         {/* Common dashboard */}
-        <Route index element={<div>Dashboard Home</div>} />
+        <Route index element={<DashboardHome />} />
 
         {/* Admin routes only */}
         <Route element={<AdminRoute />}>
