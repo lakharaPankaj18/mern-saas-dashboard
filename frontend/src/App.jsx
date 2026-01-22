@@ -6,7 +6,7 @@ import ForgotPassword from "./auth/pages/ForgotPassword";
 import ResetPassword from "./auth/pages/ResetPassword";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import DashboardLayout from "./dashboard/layouts/DashboardLayout";
-
+import AdminRoute from "./routes/AdminRoute";
 
 const App = () => {
   return (
@@ -26,7 +26,14 @@ const App = () => {
           </ProtectedRoute>
         }
       >
-      
+        {/* Common dashboard */}
+        <Route index element={<div>Dashboard Home</div>} />
+
+        {/* Admin routes only */}
+        <Route element={<AdminRoute />}>
+          <Route path="users" element={<div>Users Page</div>} />
+          <Route path="analytics" element={<div>Analytics Page</div>} />
+        </Route>
       </Route>
 
       {/* Default routes */}
