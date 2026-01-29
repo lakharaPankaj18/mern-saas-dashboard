@@ -38,7 +38,7 @@ export const getDashboard = async (req, res) => {
       User.countDocuments({ role: "member" }),
       User.countDocuments({ role: "admin" }),
       User.countDocuments({ isActive: false }),
-      User.countDocuments({ isActive: { $ne: false } }), // Counts true and undefined (existing users)
+      User.countDocuments({ isActive: { $ne: false } }), 
       User.find()
         .sort({ createdAt: -1 })
         .limit(5)

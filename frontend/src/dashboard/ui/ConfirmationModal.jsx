@@ -1,4 +1,4 @@
-import React from "react";
+
 import { AlertTriangle, X, Loader2 } from "lucide-react";
 
 const ConfirmationModal = ({ 
@@ -8,7 +8,7 @@ const ConfirmationModal = ({
   title, 
   message, 
   confirmText, 
-  type = "danger", // "danger" (red) or "warning" (indigo)
+  type = "danger", 
   isLoading = false 
 }) => {
   if (!isOpen) return null;
@@ -24,7 +24,7 @@ const ConfirmationModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 animate-in fade-in duration-200">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
@@ -72,4 +72,4 @@ const ConfirmationModal = ({
   );
 };
 
-export default React.memo(ConfirmationModal);
+export default ConfirmationModal

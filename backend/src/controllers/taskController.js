@@ -1,6 +1,6 @@
 import Task from "../models/Task.js";
 
-// @desc    Get all tasks for logged-in user
+// Get all tasks for logged-in user
 export const getTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ user: req.user._id }).sort({ createdAt: -1 });
@@ -10,7 +10,7 @@ export const getTasks = async (req, res) => {
   }
 };
 
-// @desc    Create a new task
+// Create a new task
 export const createTask = async (req, res) => {
   try {
     const { title, priority, due } = req.body;
@@ -26,7 +26,7 @@ export const createTask = async (req, res) => {
   }
 };
 
-// @desc    Toggle task completion status
+// Toggle task completion status
 export const toggleTaskStatus = async (req, res) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, user: req.user._id });
@@ -40,7 +40,7 @@ export const toggleTaskStatus = async (req, res) => {
   }
 };
 
-// @desc    Delete a task
+// Delete a task
 export const deleteTask = async (req, res) => {
   try {
     const result = await Task.findOneAndDelete({ _id: req.params.id, user: req.user._id });

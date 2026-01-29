@@ -68,7 +68,7 @@ const AddMemberDrawer = ({ onUserAdded }) => {
       />
       
       {/* Drawer: Bottom sheet on mobile, Side drawer on desktop */}
-      <div className="fixed inset-x-0 bottom-0 top-12 md:top-0 md:left-auto md:right-0 h-auto md:h-full w-full md:max-w-md bg-white shadow-2xl z-[90] rounded-t-[2.5rem] md:rounded-t-none animate-in slide-in-from-bottom md:slide-in-from-right duration-500 border-t md:border-t-0 md:border-l border-slate-100 flex flex-col">
+      <div className="fixed inset-x-0 bottom-0 top-12 md:top-0 md:left-auto md:right-0 h-auto md:h-full w-full md:max-w-md bg-white shadow-2xl z-90 rounded-t-[2.5rem] md:rounded-t-none animate-in slide-in-from-bottom md:slide-in-from-right duration-500 border-t md:border-t-0 md:border-l border-slate-100 flex flex-col">
         
         {/* Mobile Handle */}
         <div className="md:hidden flex justify-center py-4">

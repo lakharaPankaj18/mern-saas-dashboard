@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Icons
@@ -20,12 +20,12 @@ import {
   Lock
 } from "lucide-react";
 
-import { AuthContext } from "../../../auth/authentication/authContext";
+// Import the 'api' instance from your AuthProvider/Context file
 import AddUserBtn from "../../components/AddUserBtn";
 import ConfirmationModal from "../../ui/ConfirmationModal";
+import { api } from "../../../auth/authentication/AuthProvider";
 
 const UserTable = () => {
-  const { token } = useContext(AuthContext); 
   const navigate = useNavigate();
 
   // Data States
@@ -73,39 +73,32 @@ const UserTable = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Fetch Users
+  // --- FETCH USERS VIA AXIOS ---
   const fetchUsers = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:7005/api/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (res.ok) setUsers(data.users || data);
+      const res = await api.get("/users");
+      // Axios stores the response body in .data
+      setUsers(res.data.users || res.data);
     } catch (err) {
       console.error("Fetch error", err);
+      setToast({ type: "error", msg: "Failed to load users" });
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // --- API ACTIONS ---
+  // --- TOGGLE STATUS VIA AXIOS ---
   const handleToggleStatus = async (user) => {
     setIsActionLoading(true);
     try {
-      const res = await fetch(`http://localhost:7005/api/users/${user._id}/status`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-      if (res.ok) {
+      const res = await api.patch(`/users/${user._id}/status`);
+      
+      if (res.status === 200) {
         setUsers((prev) =>
           prev.map((u) => (u._id === user._id ? { ...u, isActive: !u.isActive } : u))
         );
@@ -113,33 +106,33 @@ const UserTable = () => {
         setModal((prev) => ({ ...prev, isOpen: false }));
       }
     } catch (err) {
-      console.error("err", err)
-      setToast({ type: "error", msg: "Update failed" });
+      console.error("Update error", err);
+      setToast({ type: "error", msg: err.response?.data?.message || "Update failed" });
     } finally {
       setIsActionLoading(false);
     }
   };
 
+  // --- DELETE USER VIA AXIOS ---
   const handleDeleteUser = async (id) => {
     setIsActionLoading(true);
     try {
-      const res = await fetch(`http://localhost:7005/api/users/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
+      const res = await api.delete(`/users/${id}`);
+      
+      if (res.status === 200) {
         setUsers((prev) => prev.filter((u) => u._id !== id));
         setToast({ type: "success", msg: "User permanently deleted" });
         setModal((prev) => ({ ...prev, isOpen: false }));
       }
     } catch (err) {
-      console.error("err", err)
-      setToast({ type: "error", msg: "Delete failed" });
+      console.error("Delete error", err);
+      setToast({ type: "error", msg: err.response?.data?.message || "Delete failed" });
     } finally {
       setIsActionLoading(false);
     }
   };
 
+  // --- UI TRIGGERS ---
   const triggerSuspendModal = (user) => {
     setModal({
       isOpen: true,
@@ -162,6 +155,7 @@ const UserTable = () => {
     });
   };
 
+  // --- CLIENT-SIDE FILTERING & PAGINATION ---
   const filteredUsers = useMemo(() => {
     return users.filter(
       (u) =>
@@ -208,7 +202,7 @@ const UserTable = () => {
         isLoading={isActionLoading}
       />
 
-      {/* --- HEADER CONTROLS: Responsive Flex --- */}
+      {/* --- HEADER CONTROLS --- */}
       <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-white p-4 md:p-6 rounded-3xl md:rounded-[2.5rem] border border-slate-200 shadow-sm">
         <div className="space-y-1 text-center sm:text-left">
           <h2 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">User Management</h2>
@@ -241,7 +235,7 @@ const UserTable = () => {
         </div>
       </div>
 
-      {/* --- TABLE: Horizontal Scroll Protection --- */}
+      {/* --- TABLE --- */}
       <div className="bg-white border border-slate-200 rounded-3xl md:rounded-[2.5rem] overflow-hidden shadow-sm">
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200">
           <table className="w-full text-left border-collapse min-w-175">
@@ -359,7 +353,7 @@ const UserTable = () => {
           </table>
         </div>
 
-        {/* --- FOOTER: Responsive Pagination --- */}
+        {/* --- FOOTER: Pagination --- */}
         <div className="px-6 md:px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest order-2 sm:order-1">
             {filteredUsers.length} total members

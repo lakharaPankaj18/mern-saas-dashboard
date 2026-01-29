@@ -4,20 +4,20 @@ import jwt from "jsonwebtoken";
 import crypto from 'crypto';
 import sendEmail from '../utils/email.js';
 
-// --- HELPER: GENERATE TOKENS ---
+// Generate Token
 const generateTokens = (id) => {
-  // Access Token: Used for every API request (stored in memory/state)
+  // Access Token
   const accessToken = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: "15m", 
   });
-  // Refresh Token: Used only to get a new Access Token (stored in Cookie)
+  // Refresh Token
   const refreshToken = jwt.sign({ id }, process.env.REFRESH_SECRET, {
     expiresIn: "7d", 
   });
   return { accessToken, refreshToken };
 };
 
-// --- REGISTER ---
+// Register
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -49,7 +49,7 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// --- LOGIN ---
+// Login
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -71,7 +71,7 @@ export const loginUser = async (req, res) => {
 
     // Set Refresh Token in a Secure HTTP-Only Cookie
     res.cookie("refreshToken", refreshToken, {
-      httpOnly: true, // Prevents XSS theft
+      httpOnly: true, 
       secure: process.env.NODE_ENV === "production", 
       sameSite: "Strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -92,7 +92,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// --- REFRESH TOKEN ---
+// Refresh Token
 export const refresh = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
@@ -117,7 +117,7 @@ export const refresh = async (req, res) => {
   }
 };
 
-// --- LOGOUT ---
+// Logut
 export const logoutUser = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   
@@ -133,7 +133,7 @@ export const logoutUser = async (req, res) => {
   res.status(200).json({ message: "Logged out" });
 };
 
-// --- FORGOT PASSWORD ---
+// Forgot Password
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
@@ -163,7 +163,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// --- RESET PASSWORD ---
+// Reset Password
 export const resetPassword = async (req, res) => {
   try {
     const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
@@ -178,7 +178,7 @@ export const resetPassword = async (req, res) => {
     user.password = await bcrypt.hash(req.body.password, salt);
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    user.refreshToken = ""; // Force logout from all devices on password change
+    user.refreshToken = ""; 
     
     await user.save();
     res.status(200).json({ message: 'Password updated successfully' });

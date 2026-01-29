@@ -1,47 +1,54 @@
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../../auth/authentication/authContext";
+// 1. Import 'api' for secure requests
+import { AuthContext} from "../../auth/authentication/authContext.js"; 
 import { Loader2 } from "lucide-react";
 
 import AdminHome from "./admin/AdminHome";
 import MemberHome from "./member/MemberHome";
+import { api } from "../../auth/authentication/AuthProvider.jsx";
 
 const DashboardHome = () => {
-  const { token, setIsAddUserModalOpen, user } = useContext(AuthContext);
+  const { setIsAddUserModalOpen, user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
+
     const fetchDashboard = async () => {
       try {
-        const res = await fetch("http://localhost:7005/api/dashboard", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error("Failed to fetch dashboard data");
-        const result = await res.json();
-        if (isMounted) setDashboardData(result.data);
+        const res = await api.get("/dashboard");
+        
+        if (isMounted) {
+          setDashboardData(res.data.data || res.data);
+        }
       } catch (err) {
-        console.error(err.message);
+        console.error("Dashboard fetch error:", err.response?.data?.message || err.message);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
-    if (token) fetchDashboard();
+
+    fetchDashboard();
+
     return () => { isMounted = false; };
-  }, [token]);
+  }, []); // Removed 'token' dependency as 'api' handles global auth state
 
   if (loading) return (
     <div className="flex h-[60vh] items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      <div className="flex flex-col items-center gap-3">
+        <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
+        <p className="text-xs font-black uppercase tracking-widest text-slate-400 animate-pulse">
+          Syncing Dashboard...
+        </p>
+      </div>
     </div>
   );
 
   return (
-    <div className="mx-auto max-w-400 p-8 space-y-6">
-      {/* Redundant welcome message removed from here as it is in top bar */}
-      
+    <div className="mx-auto max-w-400 p-4 md:p-8 space-y-6">
       {user?.role === "admin" ? (
         <AdminHome 
           dashboardData={dashboardData} 

@@ -70,7 +70,6 @@ export const getUserById = async (req, res) => {
 };
 
 // user status (Active / Suspend)
-
 export const toggleUserStatus = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
@@ -107,7 +106,6 @@ export const toggleUserStatus = async (req, res) => {
 };
 
 // Add user
-
 export const AddUser = async (req, res) => {
   const { name, email, role } = req.body;
 
@@ -143,7 +141,7 @@ export const AddUser = async (req, res) => {
 
 
 
-// @desc    Update user name
+// Update user name
 export const updateName = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -162,7 +160,7 @@ export const updateName = async (req, res) => {
   }
 };
 
-// @desc    Update password
+// Update password
 export const updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;

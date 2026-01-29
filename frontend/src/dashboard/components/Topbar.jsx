@@ -34,7 +34,7 @@ const Topbar = ({ onToggleSidebar, isSidebarOpen }) => {
             </div>
           ) : isHomePage ? (
             <div className="animate-in fade-in slide-in-from-left-2 duration-500">
-              <h1 className="text-sm md:text-lg font-black text-slate-900 leading-none truncate max-w-[150px] md:max-w-none">
+              <h1 className="text-sm md:text-lg font-black text-slate-900 leading-none truncate max-w-37.5 md:max-w-none">
                 Hi, {user?.name?.split(" ")[0]}! 👋
               </h1>
               <p className="hidden xs:block text-[8px] md:text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Platform Overview</p>

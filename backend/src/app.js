@@ -2,19 +2,21 @@ import express from "express";
 import cors from "cors";
 import authRoute from "./routes/authRoute.js";
 import dashboardRoute from "./routes/dashboardRoute.js";
-import userRoute from "./routes/userRoute.js"
-import taskRoute from "./routes/taskRoute.js"
+import userRoute from "./routes/userRoute.js";
+import taskRoute from "./routes/taskRoute.js";
 
-import cookieParser from 'cookie-parser';
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 // CORS Configuration
-app.use(cors({
-  origin: "http://localhost:5173", 
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"], // Added PATCH
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true,
+  }),
+);
 
 // Body Parser
 app.use(express.json());
@@ -27,9 +29,8 @@ app.get("/", (req, res) => {
 // API Routes
 app.use("/api/auth", authRoute);
 app.use("/api/dashboard", dashboardRoute);
-app.use("/api/users", userRoute)
-app.use("/api/tasks", taskRoute)
-
+app.use("/api/users", userRoute);
+app.use("/api/tasks", taskRoute);
 
 // 404 Handler - IMPORTANT: Returns JSON instead of HTML
 app.use((req, res) => {
@@ -43,7 +44,7 @@ app.use((req, res) => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error("Error:", err); // Log error for debugging
-  
+
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     success: false,
