@@ -32,6 +32,14 @@ const protect = async (req, res, next) => {
       });
     }
 
+    // Account suspension
+
+    if(!user.isActive){
+      return res.status(403).json({ 
+          message: 'Account suspended. Please contact an administrator.' 
+        });
+    }
+
     // 5. Attach user to request (role included)
     req.user = user;
 

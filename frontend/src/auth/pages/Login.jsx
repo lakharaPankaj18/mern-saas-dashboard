@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Mail, Lock, Loader2, EyeOff, Eye } from "lucide-react";
-
+import { useState, useEffect } from "react";
+import { useNavigate, Link, useLocation } from "react-router-dom"; // Added useLocation
+import { Mail, Lock, Loader2, EyeOff, Eye, CheckCircle2 } from "lucide-react"; // Added CheckCircle2
 
 import useAuth from "../authentication/useAuth.js";
 import AuthLayout from "../layouts/AuthLayout.jsx";
@@ -9,6 +8,7 @@ import AuthCard from "../components/AuthCard.jsx";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation(); // Used to catch the success message
   const { login } = useAuth();
 
   const [email, setEmail] = useState("");
@@ -16,6 +16,16 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [successMsg, setSuccessMsg] = useState("");
+
+  // Check if we arrived here from a successful password reset
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMsg(location.state.message);
+      // Clean up state so message doesn't persist on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const validate = () => {
     const newErrors = {};
@@ -87,6 +97,14 @@ const Login = () => {
         }
       >
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Success Message Alert */}
+          {successMsg && (
+            <div className="flex items-center gap-3 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-700 animate-in fade-in zoom-in-95 duration-300">
+              <CheckCircle2 size={18} className="text-emerald-500" />
+              <span className="font-bold">{successMsg}</span>
+            </div>
+          )}
+
           {/* Email */}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-slate-700 ml-1">
@@ -101,6 +119,7 @@ const Login = () => {
                 onChange={(e) => {
                   setEmail(e.target.value);
                   setErrors((prev) => ({ ...prev, email: "", api: "" }));
+                  setSuccessMsg(""); // Clear success message on typing
                 }}
                 className={`w-full rounded-xl border pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-4 ${
                   errors.email
@@ -118,9 +137,17 @@ const Login = () => {
 
           {/* Password */}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">
-              Password
-            </label>
+            <div className="flex items-center justify-between ml-1">
+              <label className="text-sm font-semibold text-slate-700">
+                Password
+              </label>
+              <Link
+                to="/forgot-password"
+                className="text-xs font-bold text-indigo-600 hover:text-indigo-500"
+              >
+                Forgot password?
+              </Link>
+            </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3 text-slate-400" size={18} />
               <input
@@ -129,6 +156,7 @@ const Login = () => {
                 onChange={(e) => {
                   setPassword(e.target.value);
                   setErrors((prev) => ({ ...prev, password: "", api: "" }));
+                  setSuccessMsg(""); // Clear success message on typing
                 }}
                 className={`w-full rounded-xl border pl-10 pr-12 py-2.5 text-sm focus:outline-none focus:ring-4 ${
                   errors.password
@@ -160,7 +188,7 @@ const Login = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-70"
+            className="flex w-full items-center justify-center rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-70 transition-all active:scale-[0.98]"
           >
             {isLoading && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

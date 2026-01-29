@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import authRoute from "./routes/authRoute.js";
 import dashboardRoute from "./routes/dashboardRoute.js";
+import userRoute from "./routes/userRoute.js"
+import taskRoute from "./routes/taskRoute.js"
+
 
 
 const app = express();
@@ -24,6 +27,8 @@ app.get("/", (req, res) => {
 // API Routes
 app.use("/api/auth", authRoute);
 app.use("/api/dashboard", dashboardRoute);
+app.use("/api/users", userRoute)
+app.use("/api/tasks", taskRoute)
 
 
 // 404 Handler - IMPORTANT: Returns JSON instead of HTML

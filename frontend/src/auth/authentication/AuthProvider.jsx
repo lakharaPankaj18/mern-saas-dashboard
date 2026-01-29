@@ -16,6 +16,8 @@ const AuthProvider = ({ children }) => {
 
   const [token, setToken] = useState(initialAuth.token);
   const [user, setUser] = useState(initialAuth.user);
+  
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
 
   const login = (token, user) => {
     localStorage.setItem("authToken", token);
@@ -31,6 +33,28 @@ const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // --- NEW: Update User Logic ---
+  const updateUser = (newData) => {
+    setUser((prev) => {
+      const updatedUser = { ...prev, ...newData };
+      // Save the updated user back to localStorage so it persists on refresh
+      localStorage.setItem("authUser", JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  };
+
+  const addUserApi = async (userData) => {
+    const res = await fetch("http://localhost:7005/api/users", {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}` 
+      },
+      body: JSON.stringify(userData),
+    });
+    return res;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -39,6 +63,10 @@ const AuthProvider = ({ children }) => {
         isAuthenticated: !!token,
         login,
         logout,
+        updateUser, // Added to exported values
+        addUserApi,
+        isAddUserModalOpen,
+        setIsAddUserModalOpen
       }}
     >
       {children}

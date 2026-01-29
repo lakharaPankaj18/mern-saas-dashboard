@@ -1,6 +1,9 @@
 import bcrypt from "bcryptjs";
 import User from "../models/user.js";
 import jwt from "jsonwebtoken";
+import crypto from 'crypto';
+import sendEmail from '../utils/email.js';
+
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -97,5 +100,73 @@ export const loginUser = async (req, res) => {
     res.status(500).json({
       message: "Server error",
     });
+  }
+};
+
+
+// --- STEP 1: FORGOT PASSWORD ---
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(200).json({ message: 'If an account exists, an email was sent.' });
+    }
+
+    // Generate raw token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+
+    // Save hashed token to DB
+    user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 Minutes
+
+    await user.save({ validateBeforeSave: false });
+
+    // Link points to your FRONTEND URL
+    const resetURL = `http://localhost:5173/reset-password/${resetToken}`;
+    const message = `Reset your password here: ${resetURL}\nThis link expires in 10 minutes.`;
+
+    try {
+      await sendEmail({ email: user.email, subject: 'Password Reset Request', message });
+      res.status(200).json({ status: 'success', message: 'Token sent to email' });
+    } catch (err) {
+      user.passwordResetToken = undefined;
+      user.passwordResetExpires = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.status(500).json({ message: 'Email could not be sent' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// --- STEP 2: RESET PASSWORD ---
+export const resetPassword = async (req, res) => {
+  try {
+    // 1. Hash the token from the URL to compare with DB
+    const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    // 2. Find user with valid token and unexpired time
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    }).select('+password'); // Explicitly select password for hashing check
+
+    if (!user) {
+      return res.status(400).json({ message: 'Token is invalid or has expired' });
+    }
+
+    // 3. Update password and clear reset fields
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(req.body.password, salt);
+    
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
+
+    res.status(200).json({ status: 'success', message: 'Password updated successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
