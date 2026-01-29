@@ -5,7 +5,7 @@ import dashboardRoute from "./routes/dashboardRoute.js";
 import userRoute from "./routes/userRoute.js"
 import taskRoute from "./routes/taskRoute.js"
 
-
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
@@ -18,7 +18,7 @@ app.use(cors({
 
 // Body Parser
 app.use(express.json());
-
+app.use(cookieParser());
 // Root Route
 app.get("/", (req, res) => {
   res.status(200).json({ message: "API is running" });
