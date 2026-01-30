@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { AuthContext } from "./authContext";
 import axios from "axios";
 
-const API_URL = "http://localhost:7005/api";
 
 // Create an axios instance for all API calls
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true, // Crucial for sending/receiving cookies
 });
 
