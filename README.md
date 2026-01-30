@@ -50,7 +50,7 @@ backend/    # Node + Express backend
 ### Server Side
 
 cd backend
-npm i & npm run dev
+npm i & npm run start
 
 ### Client Side
 
