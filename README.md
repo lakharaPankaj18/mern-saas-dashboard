@@ -8,7 +8,7 @@ A modern SaaS admin dashboard designed to manage users, analytics, and applicati
 - Backend: Node.js, Express.js, JWT
 - Database: MongoDB
 
-## Features
+## Key Features
 
 ### Authentication & Authrorization
 
@@ -39,3 +39,32 @@ A modern SaaS admin dashboard designed to manage users, analytics, and applicati
 
 - User can create a task.
 - They can view, edit, update, and delete tasks they created.
+
+## Project Structure
+
+frontend/   # React frontend
+backend/    # Node + Express backend
+
+## Installation and Setup
+
+### Server Side
+
+cd backend
+npm i & npm run dev
+
+### Client Side
+
+cd frontend
+npm i & npm run dev
+
+## Environment Variables
+Create a `.env` file inside the `backend` folder and add the following environment variables:
+
+```env
+PORT=7005
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+```
+
+
+
