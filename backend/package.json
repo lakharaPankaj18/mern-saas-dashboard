@@ -7,8 +7,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "migrate:workspace-members": "node src/scripts/migrateWorkspaceMembers.js"
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
   },
   "dependencies": {
     "@faker-js/faker": "^10.2.0",
