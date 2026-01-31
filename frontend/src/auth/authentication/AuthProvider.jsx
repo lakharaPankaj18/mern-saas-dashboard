@@ -2,11 +2,8 @@ import { useState, useEffect } from "react";
 import { AuthContext } from "./authContext";
 import axios from "axios";
 
+const BASE_URL = import.meta.env.VITE_API_URL;
 
-
-
-const BASE_URL = import.meta.env.VITE_API_URL || "https://mern-saas-dashboard-backend.onrender.com/api";
-                 
 // Create an axios instance for all API calls
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -48,11 +45,15 @@ const AuthProvider = ({ children }) => {
           prevRequest._retry = true;
           try {
             // Call the refresh endpoint (cookies are sent automatically)
-            const { data } = await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true });
-            
+            const { data } = await axios.post(
+              `${BASE_URL}/auth/refresh`,
+              {},
+              { withCredentials: true },
+            );
+
             setToken(data.accessToken);
             localStorage.setItem("authToken", data.accessToken);
-            
+
             // Update the failed request with new token and retry
             prevRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
             return api(prevRequest);
@@ -62,7 +63,7 @@ const AuthProvider = ({ children }) => {
           }
         }
         return Promise.reject(error);
-      }
+      },
     );
 
     return () => api.interceptors.response.eject(interceptor);
