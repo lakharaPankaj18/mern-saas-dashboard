@@ -45,6 +45,7 @@ const UserProfile = () => {
         const res = await api.get(`/users/${id}`);
         setUser(res.data);
       } catch (err) {
+        console.error("err", err)
         setToast({ type: 'error', msg: "Profile connection failed" });
       } finally {
         setLoading(false);
@@ -150,7 +151,7 @@ const UserProfile = () => {
                <span className={`h-2.5 w-2.5 rounded-full block ${user.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'}`} />
             </div>
             
-            <div className="h-20 w-20 md:h-24 md:w-24 rounded-3xl bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center text-indigo-600 font-black text-2xl md:text-3xl mx-auto mb-4 md:mb-6 border-4 border-white shadow-md">
+            <div className="h-20 w-20 md:h-24 md:w-24 rounded-3xl bg-linear-to-br from-indigo-50 to-indigo-100 flex items-center justify-center text-indigo-600 font-black text-2xl md:text-3xl mx-auto mb-4 md:mb-6 border-4 border-white shadow-md">
               {user.name.charAt(0).toUpperCase()}
             </div>
             

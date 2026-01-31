@@ -26,24 +26,28 @@ const AddMemberDrawer = ({ onUserAdded }) => {
     }
   }, [toast]);
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
+      // 1. Axios returns the response object directly
       const res = await addUserApi(formData);
-      const data = await res.json();
+      
+      // 2. Axios already parsed the JSON into res.data
+      const responseData = res.data;
 
-      if (res.ok) {
-        if (onUserAdded) onUserAdded(data.user || data); 
+      // 3. Axios uses 'status', Fetch uses 'ok'
+      if (res.status === 200 || res.status === 201) {
+        if (onUserAdded) onUserAdded(responseData.user || responseData); 
         setToast({ type: "success", msg: "Success!" });
         setFormData({ name: "", email: "", role: "user" });
         setTimeout(() => setIsAddUserModalOpen(false), 800);
-      } else {
-        setToast({ type: "error", msg: data.message || "Failed" });
       }
     } catch (err) {
-      console.error("err", err)
-      setToast({ type: "error", msg: "Error" });
+      // 4. Axios errors contain the response in err.response
+      console.error("err", err);
+      const errorMsg = err.response?.data?.message || "Error creating user";
+      setToast({ type: "error", msg: errorMsg });
     } finally {
       setLoading(false);
     }

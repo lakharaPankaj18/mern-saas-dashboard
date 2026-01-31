@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { AuthContext } from "./authContext";
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_URL;
 
+const API_URL = "http://localhost:7005/api"
 // Create an axios instance for all API calls
 export const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_URL,
   withCredentials: true, // Crucial for sending/receiving cookies
 });
 
@@ -46,7 +46,7 @@ const AuthProvider = ({ children }) => {
           try {
             // Call the refresh endpoint (cookies are sent automatically)
             const { data } = await axios.post(
-              `${BASE_URL}/auth/refresh`,
+              `${API_URL}/auth/refresh`,
               {},
               { withCredentials: true },
             );
