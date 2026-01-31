@@ -3,9 +3,13 @@ import { AuthContext } from "./authContext";
 import axios from "axios";
 
 
+
+
+const BASE_URL = import.meta.env.VITE_API_URL || "https://mern-saas-dashboard-backend.onrender.com/api";
+                 
 // Create an axios instance for all API calls
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: BASE_URL,
   withCredentials: true, // Crucial for sending/receiving cookies
 });
 
@@ -44,7 +48,7 @@ const AuthProvider = ({ children }) => {
           prevRequest._retry = true;
           try {
             // Call the refresh endpoint (cookies are sent automatically)
-            const { data } = await axios.post(`${API_URL}/auth/refresh`, {}, { withCredentials: true });
+            const { data } = await axios.post(`${BASE_URL}/auth/refresh`, {}, { withCredentials: true });
             
             setToken(data.accessToken);
             localStorage.setItem("authToken", data.accessToken);

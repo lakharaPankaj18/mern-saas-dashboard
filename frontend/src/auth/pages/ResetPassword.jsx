@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Lock, Loader2, ShieldCheck } from "lucide-react";
+import { Lock, Loader2 } from "lucide-react";
+import { api } from "../authentication/AuthProvider.jsx"; // Axios Instance
 
 const ResetPassword = () => {
-  const { token } = useParams(); // Grabs the token from URL
+  const { token } = useParams();
   const navigate = useNavigate();
   
   const [password, setPassword] = useState("");
@@ -19,21 +20,12 @@ const ResetPassword = () => {
     setError("");
 
     try {
-      const res = await fetch(`http://localhost:7005/api/auth/reset-password/${token}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-      const data = await res.json();
-
-      if (res.ok) {
-        // Redirect to login with a success state
-        navigate("/login", { state: { message: "Password updated! Please login." } });
-      } else {
-        setError(data.message || "Token invalid or expired");
-      }
+      // Switched to Axios (Patch request with token in URL)
+      await api.patch(`/auth/reset-password/${token}`, { password });
+      
+      navigate("/login", { state: { message: "Password updated! Please login." } });
     } catch (err) {
-      setError("Something went wrong. Try again.");
+      setError(err.response?.data?.message || "Token invalid or expired");
     } finally {
       setLoading(false);
     }
@@ -53,34 +45,17 @@ const ResetPassword = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400 ml-1">New Password</label>
-            <input
-              type="password"
-              required
-              minLength={8}
-              className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-50 outline-none transition-all text-sm"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <input type="password" required minLength={8} className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all text-sm" value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
 
           <div className="space-y-1">
             <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Confirm Password</label>
-            <input
-              type="password"
-              required
-              className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-indigo-50 outline-none transition-all text-sm"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
+            <input type="password" required className="w-full px-5 py-3 bg-slate-50 border border-slate-100 rounded-2xl outline-none transition-all text-sm" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
           </div>
 
           {error && <p className="text-xs text-red-500 font-bold ml-1">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-100 disabled:opacity-70"
-          >
+          <button type="submit" disabled={loading} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase hover:bg-indigo-700 transition-all flex items-center justify-center gap-2">
             {loading ? <Loader2 className="animate-spin" size={18} /> : "Update Password"}
           </button>
         </form>

@@ -1,20 +1,11 @@
 import React, { useEffect, useState, useContext, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../auth/authentication/authContext";
+import { api } from "../../../api/axios"; // Centralized Axios instance
 
 import {
-  ArrowLeft,
-  Shield,
-  Calendar,
-  Loader2,
-  AlertTriangle,
-  Power,
-  CheckCircle,
-  Mail,
-  Fingerprint,
-  Trash2,
-  Send,
-  UserCircle
+  ArrowLeft, Shield, Calendar, Loader2, AlertTriangle, Power,
+  CheckCircle, Mail, Fingerprint, Trash2, Send, UserCircle
 } from "lucide-react";
 import ConfirmationModal from "../../ui/ConfirmationModal";
 
@@ -22,7 +13,6 @@ const UserProfile = () => {
   const { id } = useParams();
   const auth = useContext(AuthContext);
   const currentUser = auth?.user;
-  const token = auth?.token;
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
@@ -52,67 +42,44 @@ const UserProfile = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch(`http://localhost:7005/api/users/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (res.ok) setUser(data);
+        const res = await api.get(`/users/${id}`);
+        setUser(res.data);
       } catch (err) {
-        console.error("err", err)
         setToast({ type: 'error', msg: "Profile connection failed" });
       } finally {
         setLoading(false);
       }
     };
-    if (token) fetchUser();
-  }, [id, token]);
+    fetchUser();
+  }, [id]);
 
   const handleToggleStatus = useCallback(async () => {
     setIsActionLoading(true);
     try {
-      const res = await fetch(`http://localhost:7005/api/users/${id}/status`, {
-        method: "PATCH",
-        headers: { 
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json" 
-        },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setUser(prev => ({ ...prev, isActive: data.isActive }));
-        setToast({ type: 'success', msg: `Account ${data.isActive ? 'Restored' : 'Suspended'}` });
-        setModal(prev => ({ ...prev, isOpen: false }));
-      }
+      const res = await api.patch(`/users/${id}/status`);
+      setUser(prev => ({ ...prev, isActive: res.data.isActive }));
+      setToast({ type: 'success', msg: `Account ${res.data.isActive ? 'Restored' : 'Suspended'}` });
+      setModal(prev => ({ ...prev, isOpen: false }));
     } catch (err) {
-      console.error("err", err)
-      setToast({ type: 'error', msg: "Update failed" });
+      setToast({ type: 'error', msg: err.response?.data?.message || "Update failed" });
     } finally {
       setIsActionLoading(false);
     }
-  }, [id, token]);
+  }, [id]);
 
   const handleDeleteUser = useCallback(async () => {
     setIsActionLoading(true);
     try {
-      const res = await fetch(`http://localhost:7005/api/users/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        setToast({ type: 'success', msg: "User deleted successfully" });
-        setModal(prev => ({ ...prev, isOpen: false }));
-        setTimeout(() => navigate("/dashboard/users"), 1200);
-      } else {
-        const data = await res.json();
-        setToast({ type: 'error', msg: data.message || "Delete failed" });
-      }
+      await api.delete(`/users/${id}`);
+      setToast({ type: 'success', msg: "User deleted successfully" });
+      setModal(prev => ({ ...prev, isOpen: false }));
+      setTimeout(() => navigate("/dashboard/users"), 1200);
     } catch (err) {
-      console.error("err", err)
-      setToast({ type: 'error', msg: "Server error during deletion" });
+      setToast({ type: 'error', msg: err.response?.data?.message || "Delete failed" });
     } finally {
       setIsActionLoading(false);
     }
-  }, [id, token, navigate]);
+  }, [id, navigate]);
 
   const triggerSuspendModal = () => {
     setModal({
@@ -183,7 +150,7 @@ const UserProfile = () => {
                <span className={`h-2.5 w-2.5 rounded-full block ${user.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'}`} />
             </div>
             
-            <div className="h-20 w-20 md:h-24 md:w-24 rounded-3xl bg-linear-to-br from-indigo-50 to-indigo-100 flex items-center justify-center text-indigo-600 font-black text-2xl md:text-3xl mx-auto mb-4 md:mb-6 border-4 border-white shadow-md">
+            <div className="h-20 w-20 md:h-24 md:w-24 rounded-3xl bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center text-indigo-600 font-black text-2xl md:text-3xl mx-auto mb-4 md:mb-6 border-4 border-white shadow-md">
               {user.name.charAt(0).toUpperCase()}
             </div>
             
@@ -240,7 +207,6 @@ const UserProfile = () => {
               </button>
             </div>
 
-            {/* Danger Zone Banner */}
             {!isSelf && !isAdminTargetingAdmin && (
               <div className="mt-8 md:mt-12 pt-8 md:pt-10 border-t border-slate-100">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 p-6 md:p-8 bg-slate-900 rounded-3xl md:rounded-4xl text-white text-center md:text-left">

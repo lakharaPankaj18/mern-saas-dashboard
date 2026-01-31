@@ -1,10 +1,10 @@
 import React, { useState, useContext, useEffect } from "react";
 import { User, Lock, Save, ShieldCheck, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { AuthContext } from "../../auth/authentication/authContext.js";
+import { AuthContext } from "../../auth/authentication/authContext";
+import { api } from "../../auth/authentication/AuthProvider";
 
 const ProfileSettings = () => {
   const { user, updateUser } = useContext(AuthContext);
-  const token = localStorage.getItem("authToken");
 
   const [name, setName] = useState(user?.name || "");
   const [toast, setToast] = useState(null);
@@ -15,7 +15,7 @@ const ProfileSettings = () => {
   });
   const [loading, setLoading] = useState({ profile: false, security: false });
 
-  // Auto-hide toast
+  // Auto-hide toast notifications
   useEffect(() => {
     if (toast) {
       const timer = setTimeout(() => setToast(null), 3000);
@@ -31,22 +31,14 @@ const ProfileSettings = () => {
     e.preventDefault();
     setLoading({ ...loading, profile: true });
     try {
-      const res = await fetch("http://localhost:7005/api/users/update-name", {
-        method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify({ name }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        updateUser({ name: data.name });
-        showToast("Profile name updated!");
-      }
+      // Axios PATCH call - Headers are handled by the interceptor
+      const res = await api.patch("/users/update-name", { name });
+      
+      // Axios returns the payload in res.data
+      updateUser({ name: res.data.name });
+      showToast("Profile name updated!");
     } catch (err) {
-      console.error("err", err)
-      showToast("Error updating name", "error");
+      showToast(err.response?.data?.message || "Error updating name", "error");
     } finally {
       setLoading({ ...loading, profile: false });
     }
@@ -60,27 +52,15 @@ const ProfileSettings = () => {
     }
     setLoading({ ...loading, security: true });
     try {
-      const res = await fetch("http://localhost:7005/api/users/update-password", {
-        method: "PATCH",
-        headers: { 
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify({ 
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword 
-        }),
+      await api.patch("/users/update-password", { 
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword 
       });
-      const data = await res.json();
-      if (res.ok) {
-        showToast("Security updated successfully");
-        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-      } else {
-        showToast(data.message || "Failed to update password", "error");
-      }
+      
+      showToast("Security updated successfully");
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
-      console.error("err", err)
-      showToast("Security update failed", "error");
+      showToast(err.response?.data?.message || "Failed to update password", "error");
     } finally {
       setLoading({ ...loading, security: false });
     }
@@ -89,7 +69,6 @@ const ProfileSettings = () => {
   return (
     <div className="w-full max-w-5xl mx-auto space-y-6 md:space-y-8 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-      {/* Responsive Toast */}
       {toast && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-100 w-[90%] max-w-xs animate-in slide-in-from-top-10">
           <div className="bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/10">
@@ -103,7 +82,6 @@ const ProfileSettings = () => {
         </div>
       )}
 
-      {/* Header - Centered on mobile */}
       <div className="px-2 text-center md:text-left">
         <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Account Settings</h2>
         <p className="text-xs md:text-sm text-slate-500 font-medium">Manage your profile identity and security.</p>
@@ -111,7 +89,7 @@ const ProfileSettings = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 items-start">
         
-        {/* SECTION 1: PROFILE IDENTITY */}
+        {/* SECTION 1: IDENTITY */}
         <div className="bg-white border border-slate-200 rounded-3xl md:rounded-[2.5rem] p-6 md:p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-6 md:mb-8">
             <div className="h-9 w-9 md:h-10 md:w-10 bg-indigo-50 text-indigo-600 rounded-xl md:rounded-2xl flex items-center justify-center">
@@ -197,7 +175,6 @@ const ProfileSettings = () => {
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );
