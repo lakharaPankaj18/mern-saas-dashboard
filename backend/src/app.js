@@ -12,7 +12,7 @@ const app = express();
 // CORS Configuration
 app.use(
   cors({
-    origin: true,
+    origin: "https://mern-saas-dashboard-client.vercel.app",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   }),
