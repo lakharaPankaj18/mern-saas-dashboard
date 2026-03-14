@@ -1,13 +1,13 @@
 import React, { useEffect, useState, useContext, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../../auth/authentication/authContext";
-import { api } from "../../../api/axios"; // Centralized Axios instance
 
 import {
   ArrowLeft, Shield, Calendar, Loader2, AlertTriangle, Power,
   CheckCircle, Mail, Fingerprint, Trash2, Send, UserCircle
 } from "lucide-react";
 import ConfirmationModal from "../../ui/ConfirmationModal";
+import { api } from "../../../auth/authentication/AuthProvider";
 
 const UserProfile = () => {
   const { id } = useParams();

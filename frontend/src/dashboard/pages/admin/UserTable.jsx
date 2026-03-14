@@ -17,10 +17,11 @@ import {
   CheckCircle,
   AlertCircle,
   RefreshCw,
-  Lock
+  Lock,
+  Filter,
+  ChevronRight as ChevronRightIcon
 } from "lucide-react";
 
-// Import the 'api' instance from your AuthProvider/Context file
 import AddUserBtn from "../../components/AddUserBtn";
 import ConfirmationModal from "../../ui/ConfirmationModal";
 import { api } from "../../../auth/authentication/AuthProvider";
@@ -35,6 +36,10 @@ const UserTable = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 8;
+
+  // Filter States
+  const [filterRole, setFilterRole] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
 
   // UI States
   const [openDropdownId, setOpenDropdownId] = useState(null);
@@ -73,12 +78,10 @@ const UserTable = () => {
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // --- FETCH USERS VIA AXIOS ---
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await api.get("/users");
-      // Axios stores the response body in .data
       setUsers(res.data.users || res.data);
     } catch (err) {
       console.error("Fetch error", err);
@@ -92,12 +95,10 @@ const UserTable = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // --- TOGGLE STATUS VIA AXIOS ---
   const handleToggleStatus = async (user) => {
     setIsActionLoading(true);
     try {
       const res = await api.patch(`/users/${user._id}/status`);
-      
       if (res.status === 200) {
         setUsers((prev) =>
           prev.map((u) => (u._id === user._id ? { ...u, isActive: !u.isActive } : u))
@@ -106,33 +107,28 @@ const UserTable = () => {
         setModal((prev) => ({ ...prev, isOpen: false }));
       }
     } catch (err) {
-      console.error("Update error", err);
       setToast({ type: "error", msg: err.response?.data?.message || "Update failed" });
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  // --- DELETE USER VIA AXIOS ---
   const handleDeleteUser = async (id) => {
     setIsActionLoading(true);
     try {
       const res = await api.delete(`/users/${id}`);
-      
       if (res.status === 200) {
         setUsers((prev) => prev.filter((u) => u._id !== id));
         setToast({ type: "success", msg: "User permanently deleted" });
         setModal((prev) => ({ ...prev, isOpen: false }));
       }
     } catch (err) {
-      console.error("Delete error", err);
       setToast({ type: "error", msg: err.response?.data?.message || "Delete failed" });
     } finally {
       setIsActionLoading(false);
     }
   };
 
-  // --- UI TRIGGERS ---
   const triggerSuspendModal = (user) => {
     setModal({
       isOpen: true,
@@ -155,14 +151,21 @@ const UserTable = () => {
     });
   };
 
-  // --- CLIENT-SIDE FILTERING & PAGINATION ---
+  // --- REFINED FILTERING LOGIC ---
   const filteredUsers = useMemo(() => {
-    return users.filter(
-      (u) =>
+    return users.filter((u) => {
+      const matchesSearch = 
         u.name?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        u.email?.toLowerCase().includes(debouncedSearch.toLowerCase())
-    );
-  }, [users, debouncedSearch]);
+        u.email?.toLowerCase().includes(debouncedSearch.toLowerCase());
+      
+      const matchesRole = filterRole === "all" || u.role === filterRole;
+      
+      const matchesStatus = filterStatus === "all" || 
+        (filterStatus === "active" ? u.isActive === true : u.isActive === false);
+
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [users, debouncedSearch, filterRole, filterStatus]);
 
   const currentUsers = useMemo(() => {
     const start = (currentPage - 1) * usersPerPage;
@@ -181,7 +184,7 @@ const UserTable = () => {
   return (
     <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 relative pb-10">
       {toast && (
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-100 flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-900 text-white shadow-2xl animate-in slide-in-from-top-full">
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-3 rounded-2xl bg-slate-900 text-white shadow-2xl animate-in slide-in-from-top-full">
           {toast.type === "success" ? (
             <CheckCircle className="text-emerald-400" size={18} />
           ) : (
@@ -210,6 +213,72 @@ const UserTable = () => {
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
+          
+          {/* --- FILTER BUTTON WITH STABLE DROPDOWN --- */}
+          <div className="relative group/main">
+            <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all flex items-center gap-1 relative">
+              <Filter size={18} />
+              {(filterRole !== 'all' || filterStatus !== 'all') && (
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-indigo-600 rounded-full border-2 border-white" />
+              )}
+            </button>
+
+            {/* Invisible bridge container to prevent dropdown from closing */}
+            <div className="absolute left-0 top-full pt-2 w-48 z-50 hidden group-hover/main:block animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="bg-white border border-slate-100 rounded-2xl shadow-xl py-2">
+                
+                <div className="px-4 py-1.5 mb-1 border-b border-slate-50 flex justify-between items-center">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Filters</span>
+                  {(filterRole !== 'all' || filterStatus !== 'all') && (
+                    <button 
+                      onClick={() => {setFilterRole('all'); setFilterStatus('all');}}
+                      className="text-[9px] font-bold text-indigo-600 hover:underline"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+
+                {/* Role Nested Menu */}
+                <div className="relative group/role">
+                  <div className="px-4 py-2.5 flex items-center justify-between text-[10px] font-black uppercase text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-2">
+                      <span>Role</span>
+                      {filterRole !== 'all' && <span className="text-[8px] bg-indigo-100 px-1 rounded">{filterRole}</span>}
+                    </div>
+                    <ChevronRightIcon size={12} />
+                  </div>
+                  
+                  {/* Sub-menu with side bridge */}
+                  <div className="absolute left-full top-0 ml-0 pl-1 hidden group-hover/role:block animate-in fade-in slide-in-from-left-1 duration-150">
+                    <div className="w-36 bg-white border border-slate-100 rounded-2xl shadow-xl py-2">
+                      <button onClick={() => setFilterRole('admin')} className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase ${filterRole === 'admin' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:bg-slate-50'}`}>Admin</button>
+                      <button onClick={() => setFilterRole('member')} className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase ${filterRole === 'member' ? 'text-indigo-600 bg-indigo-50' : 'text-slate-500 hover:bg-slate-50'}`}>Member</button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status Nested Menu */}
+                <div className="relative group/status">
+                  <div className="px-4 py-2.5 flex items-center justify-between text-[10px] font-black uppercase text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-2">
+                      <span>Status</span>
+                      {filterStatus !== 'all' && <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1 rounded">{filterStatus}</span>}
+                    </div>
+                    <ChevronRightIcon size={12} />
+                  </div>
+
+                  <div className="absolute left-full top-0 ml-0 pl-1 hidden group-hover/status:block animate-in fade-in slide-in-from-left-1 duration-150">
+                    <div className="w-36 bg-white border border-slate-100 rounded-2xl shadow-xl py-2">
+                      <button onClick={() => setFilterStatus('active')} className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase ${filterStatus === 'active' ? 'text-emerald-600 bg-emerald-50' : 'text-slate-500 hover:bg-slate-50'}`}>Active</button>
+                      <button onClick={() => setFilterStatus('suspended')} className={`w-full px-4 py-2 text-left text-[10px] font-bold uppercase ${filterStatus === 'suspended' ? 'text-red-600 bg-red-50' : 'text-slate-500 hover:bg-slate-50'}`}>Suspended</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <button
             onClick={fetchUsers}
             className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
@@ -262,8 +331,8 @@ const UserTable = () => {
                           {user.name?.[0].toUpperCase()}
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="text-xs md:text-sm font-black text-slate-900 truncate max-w-30 md:max-w-none">{user.name}</span>
-                          <span className="text-[10px] md:text-[11px] text-slate-400 font-medium flex items-center gap-1 truncate max-w-37.5 md:max-w-none">
+                          <span className="text-xs md:text-sm font-black text-slate-900 truncate">{user.name}</span>
+                          <span className="text-[10px] md:text-[11px] text-slate-400 font-medium flex items-center gap-1 truncate">
                             <Mail size={10} className="shrink-0" /> {user.email}
                           </span>
                         </div>
